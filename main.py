@@ -1,42 +1,66 @@
-class Player:
-    def __init__(self, name, cash, level):
-        self.name = name
-        self.cash = cash
-        self.level = level
-        self.xp = 0
-        self.required_xp_to_level_up = 100
-        self.level_checker()
+import random
 
-    def add_cash(self, cash_to_add):
-        self.cash += cash_to_add
-
-    def set_cash(self, cash_to_set):
-        self.cash += cash_to_set
-
-    def set_xp(self, xp_to_set):
-        self.xp = xp_to_set
-        self.level_up()
-
-    def add_xp(self, xp_to_add):
-        self.xp += xp_to_add
-        self.level_up()
-
-    def level_checker(self):
-        self.required_xp_to_level_up = (self.level ** 5)
-        self.level_up()
-
-    def increment_level(self):
-        self.level += 1
-
-    def level_up(self):
-        if self.xp >= self.required_xp_to_level_up:
-            self.increment_level()
-            self.level_checker()
-
-    def print_info(self):
-        print(f"Cash: {self.cash}\nLevel: {self.level}\nXP: {self.xp}\nRequired XP for LEVEL UP: {self.required_xp_to_level_up}")
+from nicegui import app, ui
 
 
-player = Player("Default", 1000, 1)
-player.set_xp(123)
-player.print_info()
+@ui.page('/game')
+def game_page():
+    ui.markdown(f"Restaurant **{app.storage.user['restaurant'][app.storage.user['id_current']]['name']}**")    # Change saving_iterator to loaded game id
+    ui.markdown(f"R_ID: *{app.storage.user['restaurant'][app.storage.user['id_current']]['restaurant_id']}*")
+    print(app.storage.user['restaurant'])
+    app.storage.user['id_current'] = 0
+    ui.button("Back to main menu", on_click=lambda: ui.navigate.to(main_page))
+
+
+def save_restaurant(name):
+    saving_id = random.randint(1, 999999)
+    app.storage.user['id_current'] = saving_id
+    try:
+        app.storage.user['restaurant'][saving_id] = {
+            'name': name,
+            'restaurant_id': saving_id
+        }
+    except KeyError:
+        app.storage.user['restaurant'] = {}
+        app.storage.user['restaurant'][saving_id] = {
+                'name': name,
+                'restaurant_id': saving_id
+        }
+    ui.navigate.to(game_page)
+
+
+@ui.page('/load_game')
+def load_game_page():
+    with ui.card().classes('fixed-center'):
+        ui.restructured_text("Load game")
+        ui.button("Create new game", on_click=lambda: ui.navigate.to(new_game_page))
+        ui.button("Load game")
+
+
+def reset_storage():
+    app.storage.user['restaurant'] = {}
+    ui.notify("Success resetting storage.")
+
+
+@ui.page('/')
+def main_page():
+    ui.button("Reset app.storage.user['restaurant']", on_click=lambda: reset_storage())
+    with ui.card().classes('fixed-center'):
+        ui.restructured_text("Restaurant Tycoon")
+        ui.button("Create new game", on_click=lambda: ui.navigate.to(new_game_page))
+        ui.button("Load game", on_click=lambda: ui.navigate.to(load_game_page))
+
+
+@ui.page('/new_game')
+def new_game_page():
+    with ui.card().classes('fixed-center'):
+        ui.restructured_text("Create new game")
+        restaurant_name_input = ui.input(label='Restaurant name', placeholder='DcMonalds',
+                                         validation={'Restaurant name is too long.': lambda value: len(value) < 20,
+                                                     'Restaurant name is too short': lambda value: len(value) > 0,
+                                                     })
+        ui.button("Create game", on_click=lambda: save_restaurant(restaurant_name_input.value))
+        ui.button("Back", on_click=lambda: ui.navigate.to(main_page))
+
+
+ui.run(storage_secret='woowsososecret')
