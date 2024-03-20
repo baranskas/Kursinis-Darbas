@@ -10,7 +10,8 @@ def save_restaurant_when_created(name):
             'restaurant_id': random.randint(1, 99999999),
             'money': restaurant_config.RESTAURANT_MONEY,
             'level': restaurant_config.RESTAURANT_LEVEL,
-            'customers': restaurant_config.RESTAURANT_CUSTOMERS
+            'customers': {},
+            'inventory': {}
         }
         game.RESTAURANT_ID = name
         ui.navigate.to(game.game_page)
