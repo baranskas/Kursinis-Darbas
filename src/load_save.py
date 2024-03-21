@@ -8,8 +8,8 @@ def save_restaurant_when_created(name):
         app.storage.user['restaurant'][name] = {
             'name': name,
             'restaurant_id': random.randint(1, 99999999),
-            'money': restaurant_config.RESTAURANT_MONEY,
-            'level': restaurant_config.RESTAURANT_LEVEL,
+            'points': restaurant_config.RESTAURANT_POINTS,
+            'day': restaurant_config.RESTAURANT_DAY,
             'customers': {},
             'inventory': {}
         }
