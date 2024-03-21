@@ -17,10 +17,11 @@
 - [X] File handling for saves (server-sided).
 - [X] Object-Oriented principles for modularity, re-usability and scalability.
 - [X] Cooking system
-- [ ] Health system for more intense gameplay.
+- [ ] Health/Point system for more intense gameplay.
 - [ ] Day system for increasing difficulty throughout the gameplay.
-- [ ] Inventory system for saving cooked foods.
-- [ ] Give order functionality.
+- [X] Inventory system for saving cooked foods.
+- [X] Give order functionality.
 - [ ] Implement upgrades.
 - [X] Recipe JSON for easy access to edit or add more recipes.
 - [ ] Hosting on a server for public access.
+- [ ] Sounds
