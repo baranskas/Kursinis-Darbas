@@ -13,9 +13,14 @@
 - [X] Loading & saving different restaurants for extended playability.
 - [X] Implement web solution for Python (NiceGUI).
 - [X] Timer to add thrill.
-- [ ] Color design for an appealing look.
+- [X] Color design for an appealing look.
 - [X] File handling for saves (server-sided).
-- [X] Object-Oriented principles for modularity, re-usability and scalability. 
-- [ ] Hosting on a server for public access.
+- [X] Object-Oriented principles for modularity, re-usability and scalability.
+- [X] Cooking system
 - [ ] Health system for more intense gameplay.
-- [ ] Recipe API for random recipes to be imported during the creation of a restaurant, so each gameplay is different.
+- [ ] Day system for increasing difficulty throughout the gameplay.
+- [ ] Inventory system for saving cooked foods.
+- [ ] Give order functionality.
+- [ ] Implement upgrades.
+- [X] Recipe JSON for easy access to edit or add more recipes.
+- [ ] Hosting on a server for public access.
