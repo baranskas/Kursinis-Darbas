@@ -40,7 +40,7 @@ def load_restaurant(selection):
 @ui.page('/load_game')
 def load_game_page():
     restaurant_list = get_saved_restaurants()
-    with ui.card().classes('fixed-center'):
+    with ui.card().classes('fixed-center no-shadow border-[1px]'):
         ui.restructured_text("Load saved restaurant").classes('text-h5 text-center mb-3')
         with ui.row():
             if len(restaurant_list) > 0:
@@ -68,7 +68,7 @@ def reset_storage_popup():
 @ui.page('/')
 def main_page():
     ui.button("Reset app.storage.user['restaurant']", on_click=lambda: reset_storage_popup())
-    with ui.card().classes('fixed-center'):
+    with ui.card().classes('fixed-center no-shadow border-[1px]'):
         ui.restructured_text("*Restaurant Tycoon*").classes('text-h5 text-center mb-3')
         ui.button("Create new restaurant", on_click=lambda: ui.navigate.to(new_game_page)).props('rounded color=secondary').classes('w-full')
         ui.button("Load game", on_click=lambda: ui.navigate.to(load_game_page)).props('rounded color=primary').classes('w-full')
@@ -76,7 +76,7 @@ def main_page():
 
 @ui.page('/new_game')
 def new_game_page():
-    with ui.card().classes('fixed-center'):
+    with ui.card().classes('fixed-center no-shadow border-[1px]'):
         ui.restructured_text("Create new restaurant").classes('text-h5 text-center')
         restaurant_name_input = ui.input(label='Restaurant name', placeholder='DcMonalds',
                                          validation={'Restaurant name is too long.': lambda value: len(value) < 20,  # Fix validation when only spaces are used
@@ -84,6 +84,3 @@ def new_game_page():
                                                      }).classes('w-full')
         ui.button("Open restaurant", on_click=lambda: save_restaurant_when_created(restaurant_name_input.value)).props('rounded color=secondary').classes('w-full')
         ui.button("Back", on_click=lambda: ui.navigate.to(main_page)).props('rounded color=primary').classes('w-full')
-
-
-ui.run(storage_secret='tA{Cif7_D8W]Wm9<3bPkQ.cG}')
