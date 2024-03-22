@@ -1,4 +1,4 @@
-# Kursinis Darbas
+# Course Work
  OOP Second Semester project. VILNIUS TECH.
 
 ## Restaurant Tycoon
