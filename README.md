@@ -7,7 +7,10 @@
 - Faker (For fake name generation) `pip install faker`
 
 ### Idea
- Thrilling restaurant management game where you'll immerse yourself in the fast-paced world of culinary chaos! In this web-based adventure developed in Python, you'll step into the shoes of a restaurant manager, tasked with handling orders and delivering delectable dishes to eager customers within strict time limits.
+Thrilling restaurant management game where you'll immerse yourself in the fast-paced world of culinary chaos! In this web-based adventure developed in Python, you'll step into the shoes of a restaurant manager, tasked with handling orders and delivering delectable dishes to eager customers within strict time limits.
+ 
+ ### How to play?
+ For now, you can clone the repository, install the necessary dependencies and run `python main.py`. It will launch a local server at 127.0.0.1:5050. Later in the development, the game will be publicly hosted.
  
 ### To do
 - [X] Loading & saving different restaurants for extended playability.
