@@ -1,12 +1,12 @@
 import random
-from src import load_save
 from nicegui import app, ui
 from faker import Faker
 import json
+from src import load_save
 
 fake = Faker('en_US')
 
-RESTAURANT_ID = "Dev"  # change back when building
+RESTAURANT_ID = ""  # change back when building
 
 dialogue_addons = [
     'May I have',
@@ -52,6 +52,7 @@ class Customer:
         self.customer_id = random.randint(0, 99999999)
         self.random_timer = random.randint(30, 60)
         self.card_id = random.randint(0, 99999999)
+        self.delivered = False
 
     def customer_counter_handler(self, progress, card):
         progress.update()
@@ -155,7 +156,6 @@ def deliver_order(food_card, food, inventory_column):
             customers[customer_id]['card_id'].delete()
             customers.pop(customer_id)
             inventory[food] -= 1
-            # add points
             if inventory[food] == 0:
                 food_card.delete()
                 inventory.pop(food)
@@ -176,13 +176,9 @@ def add_to_inventory(inventory_column, food):
 @ui.page('/game')
 def game_page():
     global RESTAURANT_ID
-    restaurant = app.storage.user['restaurant'][RESTAURANT_ID]
+    restaurant_db = app.storage.user['restaurant'][RESTAURANT_ID]
 
-    global customers
-    customers = {}
-
-    global inventory
-    inventory = {}
+    print(f"UserID connected: {app.storage.browser['id']}")
 
     ui.query('.nicegui-content').classes('p-2 gap-2')
     ui.add_head_html('''
@@ -194,7 +190,7 @@ def game_page():
     ''')
 
     with ui.card().classes('w-[99vw] py-1 no-shadow border-[1px]'):
-        ui.markdown(f"Restaurant **{restaurant['name']}**").classes('text-h5 text-center')
+        ui.markdown(f"Restaurant **{restaurant_db['name']}**").classes('text-h5 text-center')
 
     with ui.row(wrap=False).classes('gap-2'):
         with ui.dialog() as inventory_dialog, ui.card().classes('no-shadow border-[1px]'):
@@ -216,8 +212,8 @@ def game_page():
             ui.button('Close', on_click=kitchen.close).props('color=secondary')
 
         with ui.card().classes('h-[90.6vh] w-[10vw] no-shadow border-[1px]') as side_menu:
-            ui.markdown(f"**Points:** {restaurant['points']}").bind_content_from(restaurant, 'points', backward=lambda p: f"**Points:** {p}")
-            ui.markdown(f"**Day:** {restaurant['day']}")
+            ui.markdown(f"**Points:** {restaurant_db['points']}").bind_content_from(restaurant_db, 'points', backward=lambda p: f"**Points:** {p}")
+            ui.markdown(f"**Day:** {restaurant_db['day']}")
 
             ui.button("Kitchen", on_click=kitchen.open).props('rounded color=secondary').classes('w-full')
             ui.button("Inventory", on_click=inventory_dialog.open).props('rounded color=secondary').classes('w-full')

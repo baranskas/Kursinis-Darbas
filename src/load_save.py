@@ -1,17 +1,16 @@
 from nicegui import ui, app
 import random
-from src import game, restaurant_config
-
+from src import game
 
 def save_restaurant_when_created(name):
     try:
         app.storage.user['restaurant'][name] = {
             'name': name,
             'restaurant_id': random.randint(1, 99999999),
-            'points': restaurant_config.RESTAURANT_POINTS,
-            'day': restaurant_config.RESTAURANT_DAY,
-            'customers': {},
-            'inventory': {}
+            'points': 0,
+            'day': 1,
+            'customers': {},    # implement saving of local dict to server sided storage
+            'inventory': {}     # implement saving of local dict to server sided storage
         }
         game.RESTAURANT_ID = name
         ui.navigate.to(game.game_page)
