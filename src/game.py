@@ -2,11 +2,8 @@ import random
 from nicegui import app, ui
 from faker import Faker
 import json
-from src import load_save
 
-fake = Faker('en_US')
-
-RESTAURANT_ID = ""  # change back when building
+fake = Faker('en_GB')
 
 dialogue_addons = [
     'May I have',
@@ -18,7 +15,27 @@ dialogue_addons = [
     'I crave',
     'Help me out with',
     'I will faint without',
-    'Please me with'
+    'Please me with',
+    'I\'m hungry for',
+    'I\'m in the mood for',
+    'Could you provide me with',
+    'I\'d love to have',
+    'Would you mind serving me some',
+    'I\'d appreciate it if you could give me',
+    'Do you have any',
+    'How about some',
+    'I\'m looking for',
+    'I\'d like to try',
+    'Could you whip up',
+    'Can you prepare',
+    'I\'m yearning for',
+    'I\'m longing for',
+    'I\'m desperate for',
+    'I\'ve been craving',
+    'Could you hook me up with',
+    'Can you make me some',
+    'Do you happen to have',
+    'Would you be so kind as to get me'
 ]
 
 with open('foods.json') as f:
@@ -35,7 +52,6 @@ def add_article(food_name):
     else:
         return "a " + food_name
 
-
 customer_cards = []
 cook_button_list = []
 take_button_list = []
@@ -43,6 +59,31 @@ take_button_list = []
 customers = {}
 inventory = {}
 
+class Singleton(type):
+    _instances = {}
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+    
+class Restaurant(metaclass=Singleton):
+    def __init__(self):
+        self.hearts = 3
+        self.points = 0
+
+    def remove_heart(self):
+        self.hearts -= 1
+        if self.hearts <= 0:
+            ui.notification(f"You lost with {self.points} points. Resetting the game.", color="red")
+
+            ui.navigate.to('/')
+
+            self.hearts = 5
+            self.points = 0
+
+
+    def add_points(self):
+        self.points += 100
 
 class Customer:
     def __init__(self):
@@ -50,7 +91,7 @@ class Customer:
         self.order_food_name = food_names[random.randint(0, len(food_names) - 1)]
         self.order = dialogue_addons[random.randint(0, len(dialogue_addons) - 1)] + " " + add_article(self.order_food_name)
         self.customer_id = random.randint(0, 99999999)
-        self.random_timer = random.randint(30, 60)
+        self.random_timer = random.randint(30, 70)
         self.card_id = random.randint(0, 99999999)
         self.delivered = False
 
@@ -61,6 +102,7 @@ class Customer:
         if progress.value <= 0:
             card.delete()
             customers.pop(self.customer_id)
+            Restaurant().remove_heart()
 
     def remove_customer(self, customer_card):
         customers.pop(self.customer_id)
@@ -73,7 +115,6 @@ class Customer:
                 progress = ui.circular_progress(min=0, max=self.random_timer).props('color=secondary')
                 progress.value = self.random_timer
                 ui.timer(1, lambda: self.customer_counter_handler(progress, self.card_id))
-                # ui.button("Pop", on_click=lambda: self.remove_customer(self.card_id)).props('rounded color=primary')
                 ui.markdown(f"**{self.name}**").classes('text-h5')
                 ui.markdown(f"*{self.order}*").classes('text-h5')
 
@@ -94,11 +135,6 @@ def add_customer(column):
     else:
         print("Can't add customer. Full list.")
 
-
-def print_customers():
-    print(customers)
-
-
 def fetch_inventory(inventory_column):
     if inventory != {}:
         inventory_column.clear()
@@ -107,7 +143,6 @@ def fetch_inventory(inventory_column):
     else:
         text = ui.markdown("Inventory empty")
         text.move(inventory_column)
-
 
 def cooking_counter_handler(food, progress, random_value, button, inventory_column):
     timer = ui.timer(1, lambda: start_cooking())
@@ -136,7 +171,6 @@ def cooking_counter_handler(food, progress, random_value, button, inventory_colu
 
             notification.message = f"Done making {food}"
 
-
 def add_to_kitchen(food_column, food, inventory_column):
     with ui.card().classes('w-full py-2 no-shadow border-[1px]') as food_card:
         with ui.row().classes('items-center'):
@@ -149,19 +183,20 @@ def add_to_kitchen(food_column, food, inventory_column):
 
     food_card.move(food_column)
 
-
 def deliver_order(food_card, food, inventory_column):
     for customer_id in list(customers):
         if food == customers[customer_id]['order_food_name']:
             customers[customer_id]['card_id'].delete()
             customers.pop(customer_id)
+            Restaurant().add_points()
             inventory[food] -= 1
             if inventory[food] == 0:
                 food_card.delete()
                 inventory.pop(food)
 
             fetch_inventory(inventory_column)
-
+        else:
+            ui.notification(f"No-one wants {food}", color="red")
 
 def add_to_inventory(inventory_column, food):
     with ui.card().classes('w-full py-2 no-shadow border-[1px]') as food_card:
@@ -172,14 +207,8 @@ def add_to_inventory(inventory_column, food):
 
     food_card.move(inventory_column)
 
-
-@ui.page('/game')
+@ui.page('/')
 def game_page():
-    global RESTAURANT_ID
-    restaurant_db = app.storage.user['restaurant'][RESTAURANT_ID]
-
-    print(f"UserID connected: {app.storage.browser['id']}")
-
     ui.query('.nicegui-content').classes('p-2 gap-2')
     ui.add_head_html('''
         <style type="text/tailwindcss">
@@ -190,7 +219,7 @@ def game_page():
     ''')
 
     with ui.card().classes('w-[99vw] py-1 no-shadow border-[1px]'):
-        ui.markdown(f"Restaurant **{restaurant_db['name']}**").classes('text-h5 text-center')
+        ui.markdown(f"Restaurant Tycoon").classes('text-h5 text-center')
 
     with ui.row(wrap=False).classes('gap-2'):
         with ui.dialog() as inventory_dialog, ui.card().classes('no-shadow border-[1px]'):
@@ -212,16 +241,14 @@ def game_page():
             ui.button('Close', on_click=kitchen.close).props('color=secondary')
 
         with ui.card().classes('h-[90.6vh] w-[10vw] no-shadow border-[1px]') as side_menu:
-            ui.markdown(f"**Points:** {restaurant_db['points']}").bind_content_from(restaurant_db, 'points', backward=lambda p: f"**Points:** {p}")
-            ui.markdown(f"**Day:** {restaurant_db['day']}")
-
+            ui.label().bind_text_from(Restaurant(), 'hearts', backward= lambda x: f"Lives: {x}").classes('text-h5')
+            ui.label().bind_text_from(Restaurant(), 'points', backward= lambda x:   f"Points: {x}").classes('text-h5')
             ui.button("Kitchen", on_click=kitchen.open).props('rounded color=secondary').classes('w-full')
             ui.button("Inventory", on_click=inventory_dialog.open).props('rounded color=secondary').classes('w-full')
-            ui.button("Upgrades").props('rounded color=secondary').classes('w-full')
-
-            ui.button("QUIT", on_click=lambda: ui.navigate.to(load_save.main_page)).props('rounded color=secondary').classes('self-end w-full my-5')
-
-            ui.button("Print Customers", on_click=lambda: print_customers()).props('rounded color=primary').classes('w-full')
-
+            
         customer_column = ui.column().classes('gap-2')
-        ui.button("Add Customer", on_click=lambda: add_customer(customer_column)).props('rounded color=primary').classes('w-full').move(side_menu)
+
+        if len(customers) < 11:
+            ui.timer(random.randint(5, 30), lambda: add_customer(customer_column))
+        else:
+            pass
