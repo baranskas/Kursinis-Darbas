@@ -41,17 +41,25 @@ In this snippet of the code, we use Singleton object in order to ensure that the
 ### Template Method
 By implementing Polymorphsim and Inheritance, I also automatically found out the template method in my game. (See picture in Polymorphism and Inheritance). The base class is created as a template for other customer types to customize. To minimize the code usage, the base class of CustomerCreator has RegularCustomer attributes, but VIPCustomer overwrites the attributes and methods. In conclusion, the template method lets us implement unlimited amount of customer types easily without a hassle.
 
-## Reading from and writing to a file.
+## Reading from and writing to a file
 When creating the game, I had to come up with an idea of how to implement the food and dialogue lists. After deciding to use the JSON format files (because it's easy to parse them in Python), it made my life a whole lot easier. After completing the 'reading from a file' functional requirement, I had to come up with an idea of what to write in a file. The library I am using for the GUI (NiceGUI) has a nice built-in feature of persistant storage in the browser and it allows me to write the high-score of a player inside the browsers storage.
 
 ![](screenshots/jsonparsing.png)
 ![](screenshots/highscore.png)
 
 ## Testing
+Learning UnitTests allowed me to test the game functionality without actually trying to play the game. Asserting certain values let me adjust the deduction or adding of points or lives.
+![](screenshots/unittest.png)
 
 ## Code Style
 The code style is following the PEP8 style guidelines.
 
 ## Results
+- Implementing Design Patterns allowed me to easily control objects around the project and re-use them as templates.
+- Looking at the project from the OOP perspective allowed the project to be easily understood.
+- Some challenges were encountered during the implementation of encapsulation, as I did not see a single point in the code where I could implement the private access modifier.
+- Working on this project completely taught me to understand the OOP principles, and my coding habits since this project have changed a lot (as seen in my other projects).
+- After learning UnitTests it allowed me to see that it is possible to test something without actually opening the project and trying it out for yourself.
 
 ## Conclusions
+When first starting out this project, I thought it would be easy as I've did a lot of programming before this course. Turns out, I was wrong, because the OOP principles were hard to grasp when trying to implement them after years of programming without OOP. But I can confidently say that it was a breakthrough in my understanding of programming and learning the principles allowed me to implement features I could not before. If I would start again from scratch, I would rewrite a lot of the logic and implement more features, but the way I coded this from the start, stops me from doing so.
