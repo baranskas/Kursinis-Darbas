@@ -1,6 +1,8 @@
 # Course Work
  OOP Coursework. VILNIUS TECH.
 
+![](screenshots/maingamescreen.png)
+
 ## Restaurant Tycoon
 ### Dependencies
 - NiceGUI (Web GUI) `pip install nicegui`
