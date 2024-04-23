@@ -2,46 +2,17 @@ import random
 from nicegui import app, ui
 from faker import Faker
 import json
+from abc import ABC, abstractmethod
 
 fake = Faker('en_GB')
 
-dialogue_addons = [
-    'May I have',
-    'Can I get',
-    'I want to order',
-    'I shall get',
-    'Get me',
-    'Bring me',
-    'I crave',
-    'Help me out with',
-    'I will faint without',
-    'Please me with',
-    'I\'m hungry for',
-    'I\'m in the mood for',
-    'Could you provide me with',
-    'I\'d love to have',
-    'Would you mind serving me some',
-    'I\'d appreciate it if you could give me',
-    'Do you have any',
-    'How about some',
-    'I\'m looking for',
-    'I\'d like to try',
-    'Could you whip up',
-    'Can you prepare',
-    'I\'m yearning for',
-    'I\'m longing for',
-    'I\'m desperate for',
-    'I\'ve been craving',
-    'Could you hook me up with',
-    'Can you make me some',
-    'Do you happen to have',
-    'Would you be so kind as to get me'
-]
+with open('dialogue.json', 'r') as file:
+    data = json.load(file)
+    dialogue_addons = data['dialogue_addons']
 
 with open('foods.json') as f:
     data = json.load(f)
     food_names = sorted(data['foods'])
-
 
 def add_article(food_name):
     vowels = ['a', 'e', 'i', 'o', 'u']
@@ -76,28 +47,32 @@ class Restaurant(metaclass=Singleton):
         if self.hearts <= 0:
             ui.notification(f"You lost with {self.points} points. Resetting the game.", color="red")
 
+            if app.storage.user['high-score'] < self.points:
+                app.storage.user['high-score'] = self.points
+
             ui.navigate.to('/')
 
-            self.hearts = 5
+            self.hearts = 3
             self.points = 0
 
 
-    def add_points(self):
-        self.points += 100
+    def add_points(self, points):
+        self.points += points
 
-class Customer:
+class CustomerCreator(ABC):
     def __init__(self):
         self.name = fake.name()
         self.order_food_name = food_names[random.randint(0, len(food_names) - 1)]
         self.order = dialogue_addons[random.randint(0, len(dialogue_addons) - 1)] + " " + add_article(self.order_food_name)
-        self.customer_id = random.randint(0, 99999999)
-        self.random_timer = random.randint(30, 70)
+        self.customer_id = random.randint(0, 1000)
+        self._random_timer = random.randint(50, 90)
         self.card_id = random.randint(0, 99999999)
         self.delivered = False
+        self.points = 100
 
     def customer_counter_handler(self, progress, card):
         progress.update()
-        self.random_timer = progress.value - 1
+        self._random_timer = progress.value - 1
         progress.set_value(round(progress.value - 1))
         if progress.value <= 0:
             card.delete()
@@ -108,12 +83,20 @@ class Customer:
         customers.pop(self.customer_id)
         customer_card.delete()
 
+    def create_customer_card(self):
+        pass
+
+
+class RegularCustomer(CustomerCreator):
+    def __init__(self):
+        super().__init__()
+
     def create_customer_card(self, column):
         global customer_cards
         with ui.card().classes('w-[88.7vw] py-2 justify-center no-shadow border-[1px]') as self.card_id:
             with ui.row().classes('items-center'):
-                progress = ui.circular_progress(min=0, max=self.random_timer).props('color=secondary')
-                progress.value = self.random_timer
+                progress = ui.circular_progress(min=0, max=self._random_timer).props('color=secondary')
+                progress.value = self._random_timer
                 ui.timer(1, lambda: self.customer_counter_handler(progress, self.card_id))
                 ui.markdown(f"**{self.name}**").classes('text-h5')
                 ui.markdown(f"*{self.order}*").classes('text-h5')
@@ -122,18 +105,47 @@ class Customer:
         self.card_id.move(column)
 
 
-def add_customer(column):
+class VIPCustomer(CustomerCreator):
+    def __init__(self):
+        super().__init__()
+        self._random_timer = random.randint(30, 50)
+        self.customer_id = random.randint(1000, 2000)
+        self.points = 200
+
+    def create_customer_card(self, column):
+        global customer_cards
+        with ui.card().classes('w-[88.7vw] py-2 justify-center no-shadow border-[1px] bg-amber-800') as self.card_id:
+            with ui.row().classes('items-center'):
+                progress = ui.circular_progress(min=0, max=self._random_timer).props('color=secondary')
+                progress.value = self._random_timer
+                ui.timer(1, lambda: self.customer_counter_handler(progress, self.card_id))
+                ui.markdown(f"**{self.name}**").classes('text-h5')
+                ui.markdown(f"*{self.order}*").classes('text-h5')
+
+        customer_cards.append(self.card_id)
+        self.card_id.move(column)
+
+
+def customerAddHandler(column):
     global customers
     if len(customers) < 11:
-        customer = Customer()
+        random_num = random.randint(0, 10)
+        
+        if random_num > 8:
+            customer = VIPCustomer()
+        else:
+            customer = RegularCustomer()
+
         customer.create_customer_card(column)
         customers[customer.customer_id] = {}
-        customers[customer.customer_id]['random_timer'] = customer.random_timer
+        customers[customer.customer_id]['random_timer'] = customer._random_timer
         customers[customer.customer_id]['order_food_name'] = customer.order_food_name
         customers[customer.customer_id]['name'] = customer.name
         customers[customer.customer_id]['card_id'] = customer.card_id
+        customers[customer.customer_id]['points'] = customer.points
     else:
         print("Can't add customer. Full list.")
+
 
 def fetch_inventory(inventory_column):
     if inventory != {}:
@@ -143,6 +155,7 @@ def fetch_inventory(inventory_column):
     else:
         text = ui.markdown("Inventory empty")
         text.move(inventory_column)
+
 
 def cooking_counter_handler(food, progress, random_value, button, inventory_column):
     timer = ui.timer(1, lambda: start_cooking())
@@ -171,6 +184,7 @@ def cooking_counter_handler(food, progress, random_value, button, inventory_colu
 
             notification.message = f"Done making {food}"
 
+
 def add_to_kitchen(food_column, food, inventory_column):
     with ui.card().classes('w-full py-2 no-shadow border-[1px]') as food_card:
         with ui.row().classes('items-center'):
@@ -183,20 +197,20 @@ def add_to_kitchen(food_column, food, inventory_column):
 
     food_card.move(food_column)
 
+
 def deliver_order(food_card, food, inventory_column):
     for customer_id in list(customers):
         if food == customers[customer_id]['order_food_name']:
+            Restaurant().add_points(customers[customer_id]['points'])
             customers[customer_id]['card_id'].delete()
             customers.pop(customer_id)
-            Restaurant().add_points()
             inventory[food] -= 1
             if inventory[food] == 0:
                 food_card.delete()
                 inventory.pop(food)
 
             fetch_inventory(inventory_column)
-        else:
-            ui.notification(f"No-one wants {food}", color="red")
+
 
 def add_to_inventory(inventory_column, food):
     with ui.card().classes('w-full py-2 no-shadow border-[1px]') as food_card:
@@ -206,6 +220,7 @@ def add_to_inventory(inventory_column, food):
             ui.markdown(f"{food}: {inventory[food]}").classes('text-h5 text-center').bind_content_from(inventory, food, backward=lambda c: f"{food}: {c}")
 
     food_card.move(inventory_column)
+
 
 @ui.page('/')
 def game_page():
@@ -243,12 +258,10 @@ def game_page():
         with ui.card().classes('h-[90.6vh] w-[10vw] no-shadow border-[1px]') as side_menu:
             ui.label().bind_text_from(Restaurant(), 'hearts', backward= lambda x: f"Lives: {x}").classes('text-h5')
             ui.label().bind_text_from(Restaurant(), 'points', backward= lambda x:   f"Points: {x}").classes('text-h5')
+            ui.label().bind_text_from(app.storage.user, 'high-score', backward= lambda x:   f"High-score: {x}").classes('text-h5')
             ui.button("Kitchen", on_click=kitchen.open).props('rounded color=secondary').classes('w-full')
             ui.button("Inventory", on_click=inventory_dialog.open).props('rounded color=secondary').classes('w-full')
             
         customer_column = ui.column().classes('gap-2')
 
-        if len(customers) < 11:
-            ui.timer(random.randint(5, 30), lambda: add_customer(customer_column))
-        else:
-            pass
+        ui.timer(15, lambda: customerAddHandler(customer_column))
